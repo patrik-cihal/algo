@@ -1,16 +1,17 @@
 use super::Integer;
 
 pub trait PrimeExt: Integer {
+    /// Checks whether a given integer is prime
     fn is_prime(&self) -> bool {
         if *self < Self::ZERO {
-            panic!("Attempted to check primality for negative integer.");
+            panic!("failed to check whether integer '{:?}' is a prime number, because it is smaller than zero for which this function is undefined", self);
         }
 
         if *self == Self::ZERO || *self == Self::ONE {
             return false;
         }
 
-        let mut cur = Self::ONE + Self::ONE;
+        let mut cur = Self::from_i64(2);
 
         while cur*cur <= *self {
             if *self % cur == Self::ZERO {
@@ -20,6 +21,31 @@ pub trait PrimeExt: Integer {
         }
 
         true
+    }
+
+    /// Returns prime factors of an integer in increasing order
+    fn factorize(&self) -> Vec<Self> {
+        if *self < Self::ZERO {
+            panic!("failed to find prime factors of the integer '{:?}', because it is smaller than zero for which this function is undefined", self);
+        }
+
+        let mut result = vec![];
+        let mut prime = Self::from_i64(2);
+        let mut n = *self;
+
+        while prime*prime <= *self {
+            while n % prime == Self::ZERO {
+                result.push(prime);
+                n = n / prime;
+            }
+            prime = prime + Self::ONE;
+        }
+
+        if n > Self::ONE {
+            result.push(n);
+        }
+
+        result
     }
 }
 
@@ -59,5 +85,41 @@ mod tests {
         assert_eq!(21.is_prime(), false);
         assert_eq!(25.is_prime(), false);
         assert_eq!(27.is_prime(), false);
+    }
+
+    #[test]
+    fn test_factorize_primes() {
+        assert_eq!(2.factorize(), vec![2]);
+        assert_eq!(3.factorize(), vec![3]);
+        assert_eq!(5.factorize(), vec![5]);
+        assert_eq!(7.factorize(), vec![7]);
+        assert_eq!(11.factorize(), vec![11]);
+        assert_eq!(13.factorize(), vec![13]);
+    }
+
+    #[test]
+    fn test_factorize_composites() {
+        assert_eq!(4.factorize(), vec![2, 2]);
+        assert_eq!(6.factorize(), vec![2, 3]);
+        assert_eq!(8.factorize(), vec![2, 2, 2]);
+        assert_eq!(9.factorize(), vec![3, 3]);
+        assert_eq!(10.factorize(), vec![2, 5]);
+        assert_eq!(12.factorize(), vec![2, 2, 3]);
+        assert_eq!(15.factorize(), vec![3, 5]);
+        assert_eq!(16.factorize(), vec![2, 2, 2, 2]);
+        assert_eq!(18.factorize(), vec![2, 3, 3]);
+    }
+
+    #[test]
+    fn test_factorize_less_than_two() {
+        assert_eq!(1.factorize(), vec![]);
+        assert_eq!(0.factorize(), vec![]);
+    }
+
+    #[test]
+    fn test_factorize_product() {
+        let factors = 100.factorize();
+        let product: i64 = factors.iter().product();
+        assert_eq!(product, 100);
     }
 }
