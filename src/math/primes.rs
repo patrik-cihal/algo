@@ -30,15 +30,15 @@ pub trait PrimeExt: Integer {
         }
 
         let mut result = vec![];
-        let mut prime = Self::from_i64(2);
+        let mut k = Self::from_i64(2);
         let mut n = *self;
 
-        while prime*prime <= *self {
-            while n % prime == Self::ZERO {
-                result.push(prime);
-                n = n / prime;
+        while k*k <= *self {
+            while n % k == Self::ZERO {
+                result.push(k);
+                n = n / k;
             }
-            prime = prime + Self::ONE;
+            k = k + Self::ONE;
         }
 
         if n > Self::ONE {
