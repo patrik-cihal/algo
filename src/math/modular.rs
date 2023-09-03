@@ -1,8 +1,14 @@
-use std::ops::{Add, Mul, Sub, Div, AddAssign, MulAssign, SubAssign, DivAssign};
+use std::{ops::{Add, Mul, Sub, Div, AddAssign, MulAssign, SubAssign, DivAssign}, fmt::Display};
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub struct MInt<const MODULUS: u64> {
     pub value: u64
+}
+
+impl<const M: u64> Display for MInt<M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
 }
 
 impl<const MODULUS: u64> MInt<MODULUS> {
