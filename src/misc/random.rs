@@ -17,7 +17,7 @@ pub struct XorShift {
 }
 
 impl XorShift {
-    pub fn new(mut seed: u64) -> Self {
+    pub fn new(seed: u64) -> Self {
         XorShift {
             x: 9018237498,
             y: 1982731389,
