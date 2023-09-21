@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! print_iter {
+macro_rules! println_iter {
     ($iter:expr) => {
         for val in $iter {
             print!("{} ", val);
