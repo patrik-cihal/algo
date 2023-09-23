@@ -21,6 +21,7 @@ macro_rules! impl_integer {
 }
 
 impl_integer!(usize);
+impl_integer!(isize);
 impl_integer!(i32);
 impl_integer!(i64);
 impl_integer!(u32);
