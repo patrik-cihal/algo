@@ -38,4 +38,7 @@ impl DisjointSet {
           let x = self.find(x);
           self.size[x]
      }
+     pub fn len(&self) -> usize {
+          self.data.len()
+     }
 }
