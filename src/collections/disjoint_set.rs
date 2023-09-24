@@ -12,7 +12,7 @@ impl DisjointSet {
      }
      pub fn find(&mut self, mut x: usize) -> usize {
           if self.data[x] != x {
-               x = self.find(x);
+               x = self.find(self.data[x]);
                self.data[x] = x;
           }
           x
@@ -33,5 +33,9 @@ impl DisjointSet {
           self.data[y] = x;
 
           true
+     }
+     pub fn size(&mut self, x: usize) -> usize {
+          let x = self.find(x);
+          self.size[x]
      }
 }
