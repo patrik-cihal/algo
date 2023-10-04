@@ -37,8 +37,13 @@ impl Fract {
         }
         (num, den as u64)
     }
+    pub fn num(&self) -> i64 {
+        self.num
+    }
+    pub fn den(&self) -> u64 {
+        self.den
+    }
 }
-
 
 impl std::ops::Add<Fract> for Fract {
     type Output = Fract;
