@@ -8,6 +8,12 @@ impl Display for Fract {
     }
 }
 
+impl<I: Integer> From<I> for Fract {
+    fn from(value: I) -> Self {
+        Self::new(value.to_i64(), 1) 
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Fract {
     num: i64,
@@ -32,6 +38,7 @@ impl Fract {
         (num, den as u64)
     }
 }
+
 
 impl std::ops::Add<Fract> for Fract {
     type Output = Fract;
