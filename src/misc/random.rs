@@ -4,7 +4,9 @@ pub static mut RNG: Option<XorShift> = None;
 
 pub fn rand_u64() -> u64 {
     let rng = unsafe {
-        RNG.get_or_insert(XorShift::new((SystemTime::UNIX_EPOCH.elapsed().unwrap().as_nanos() & 0xFFFFFFFFFFFFFFFF) as u64))
+        RNG.get_or_insert(XorShift::new(
+            (SystemTime::UNIX_EPOCH.elapsed().unwrap().as_nanos() & 0xFFFFFFFFFFFFFFFF) as u64,
+        ))
     };
     rng.next()
 }

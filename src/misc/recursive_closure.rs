@@ -41,7 +41,6 @@ macro_rules! recursive_closure {
     }
 }
 
-
 recursive_closure!(RFn0, Callable0, ());
 recursive_closure!(RFn, Callable, (Arg arg,));
 recursive_closure!(RFn2, Callable2, (Arg1 arg1, Arg2 arg2,));

@@ -1,10 +1,29 @@
-use std::{ops::{Mul, Div, Rem, Add, Sub}, fmt::{Display, Debug}};
+use std::{
+    fmt::{Debug, Display},
+    ops::{Add, Div, Mul, Rem, Sub},
+};
 
-pub trait Integer: Sized + Mul<Self, Output=Self> + Div<Self, Output=Self>+ Rem<Self, Output=Self> + Add<Self, Output=Self> + Sub<Self, Output=Self> + PartialEq + Eq + Ord + PartialOrd + Copy + Clone + Display + Debug {
+pub trait Integer:
+    Sized
+    + Mul<Self, Output = Self>
+    + Div<Self, Output = Self>
+    + Rem<Self, Output = Self>
+    + Add<Self, Output = Self>
+    + Sub<Self, Output = Self>
+    + PartialEq
+    + Eq
+    + Ord
+    + PartialOrd
+    + Copy
+    + Clone
+    + Display
+    + Debug
+{
     const ONE: Self;
     const ZERO: Self;
 
     fn from_i64(val: i64) -> Self;
+    fn to_i64(self) -> i64;
 }
 
 macro_rules! impl_integer {
@@ -15,6 +34,9 @@ macro_rules! impl_integer {
 
             fn from_i64(val: i64) -> Self {
                 val as $t
+            }
+            fn to_i64(self) -> i64 {
+                self as i64
             }
         }
     };

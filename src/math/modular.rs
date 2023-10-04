@@ -1,8 +1,11 @@
-use std::{ops::{Add, Mul, Sub, Div, AddAssign, MulAssign, SubAssign, DivAssign}, fmt::Display};
+use std::{
+    fmt::Display,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+};
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub struct MInt<const MODULUS: u64> {
-    pub value: u64
+    pub value: u64,
 }
 
 impl<const M: u64> Display for MInt<M> {
@@ -13,18 +16,14 @@ impl<const M: u64> Display for MInt<M> {
 
 impl<const MODULUS: u64> MInt<MODULUS> {
     pub fn one() -> Self {
-        Self {
-            value: 1
-        }
+        Self { value: 1 }
     }
     pub fn zero() -> Self {
-        Self {
-            value: 0
-        }
+        Self { value: 0 }
     }
     pub fn new(value: u64) -> Self {
         Self {
-            value: value%MODULUS
+            value: value % MODULUS,
         }
     }
     pub fn pow(self, n: u64) -> MInt<MODULUS> {
@@ -41,7 +40,9 @@ impl<const MODULUS: u64> MInt<MODULUS> {
         result
     }
     fn extended_gcd(a: i64, b: i64) -> (i64, i64, i64) {
-        if a == 0 { (b, 0, 1) } else {
+        if a == 0 {
+            (b, 0, 1)
+        } else {
             let (g, x, y) = Self::extended_gcd(b % a, a);
             (g, y - (b / a) * x, x)
         }
@@ -55,19 +56,17 @@ impl<const MODULUS: u64> MInt<MODULUS> {
 impl<const T: u64> Add<MInt<T>> for MInt<T> {
     type Output = MInt<T>;
     fn add(self, rhs: MInt<T>) -> Self::Output {
-        let mut value = self.value+rhs.value;
+        let mut value = self.value + rhs.value;
         if value >= T {
             value -= T;
         }
-        Self {
-            value
-        } 
+        Self { value }
     }
 }
 
 impl<const T: u64> AddAssign<MInt<T>> for MInt<T> {
     fn add_assign(&mut self, rhs: MInt<T>) {
-        *self = *self+rhs;
+        *self = *self + rhs;
     }
 }
 
@@ -75,46 +74,44 @@ impl<const T: u64> Mul<MInt<T>> for MInt<T> {
     type Output = MInt<T>;
     fn mul(self, rhs: MInt<T>) -> Self::Output {
         Self {
-            value: (self.value*rhs.value)%T
+            value: (self.value * rhs.value) % T,
         }
     }
 }
 
 impl<const T: u64> MulAssign<MInt<T>> for MInt<T> {
     fn mul_assign(&mut self, rhs: MInt<T>) {
-        self.value = (self.value*rhs.value)%T;
+        self.value = (self.value * rhs.value) % T;
     }
 }
 
 impl<const T: u64> Sub<MInt<T>> for MInt<T> {
     type Output = MInt<T>;
     fn sub(self, rhs: MInt<T>) -> Self::Output {
-        let mut value = self.value+T-rhs.value;
+        let mut value = self.value + T - rhs.value;
         if value >= T {
             value -= T;
         }
-        Self {
-            value
-        }
+        Self { value }
     }
 }
 
 impl<const T: u64> SubAssign<MInt<T>> for MInt<T> {
     fn sub_assign(&mut self, rhs: MInt<T>) {
-        *self = *self-rhs;
+        *self = *self - rhs;
     }
 }
 
 impl<const T: u64> Div<MInt<T>> for MInt<T> {
     type Output = MInt<T>;
     fn div(self, rhs: MInt<T>) -> Self::Output {
-        self*rhs.inv()
+        self * rhs.inv()
     }
 }
 
 impl<const T: u64> DivAssign<MInt<T>> for MInt<T> {
     fn div_assign(&mut self, rhs: MInt<T>) {
-        *self = *self/rhs;
+        *self = *self / rhs;
     }
 }
 
@@ -123,11 +120,6 @@ impl<const T: u64> Into<MInt<T>> for u64 {
         MInt::new(self)
     }
 }
-
-
-
-
-
 
 #[cfg(test)]
 mod tests {

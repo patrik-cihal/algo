@@ -4,7 +4,7 @@ use super::super::misc::random::rand_u64;
 
 pub enum TreapNodeCont<T: PartialOrd> {
     Some(Box<TreapNode<T>>),
-    Empty
+    Empty,
 }
 
 impl<T: PartialOrd> Default for TreapNodeCont<T> {
@@ -18,16 +18,14 @@ pub struct Treap<T: PartialOrd> {
     root: TreapNodeCont<T>,
 }
 
-impl<T: Clone+PartialOrd> Treap<T> {
+impl<T: Clone + PartialOrd> Treap<T> {
     pub fn new() -> Self {
         Self {
             root: TreapNodeCont::Empty,
         }
     }
     pub fn from_root(root: TreapNodeCont<T>) -> Self {
-        Self {
-            root,
-        }
+        Self { root }
     }
     /// Returns two treaps such that all the keys in the first treap are smaller than or equal to x and in the second treap higher than x
     pub fn split(self, x: T) -> (Treap<T>, Treap<T>) {
@@ -41,7 +39,7 @@ impl<T: Clone+PartialOrd> Treap<T> {
     /// All the keys in the left treap must be lower than all the keys in the right treap
     pub fn merge(self, other: Treap<T>) -> Treap<T> {
         let new_root = self.root.merge(other.root);
-        Self {root: new_root}
+        Self { root: new_root }
     }
     pub fn erase(&mut self, key: &T) {
         let root = mem::take(&mut self.root);
@@ -60,21 +58,21 @@ pub struct TreapNode<T: PartialOrd> {
     left: TreapNodeCont<T>,
     right: TreapNodeCont<T>,
     priority: u64,
-    len: usize
+    len: usize,
 }
 
-impl<T: PartialOrd+Clone> TreapNode<T> {
+impl<T: PartialOrd + Clone> TreapNode<T> {
     pub fn from_key(key: T) -> Self {
         Self {
-            key, 
+            key,
             left: TreapNodeCont::Empty,
             right: TreapNodeCont::Empty,
             priority: rand_u64(),
-            len: 1
+            len: 1,
         }
     }
     fn recompute(&mut self) {
-        self.len = self.left.len()+self.right.len()+1;
+        self.len = self.left.len() + self.right.len() + 1;
     }
 }
 
@@ -82,8 +80,7 @@ impl<T: PartialOrd + Clone> TreapNodeCont<T> {
     fn len(&self) -> usize {
         if let TreapNodeCont::Some(root) = self {
             root.len
-        }
-        else {
+        } else {
             0
         }
     }
@@ -98,8 +95,7 @@ impl<T: PartialOrd + Clone> TreapNodeCont<T> {
             root.len = root.left.len() + root.right.len();
             root.recompute();
             right_res = TreapNodeCont::Some(root);
-        }
-        else {
+        } else {
             (root.right, right_res) = root.right.split(x);
             root.recompute();
             left_res = TreapNodeCont::Some(root);
@@ -113,15 +109,14 @@ impl<T: PartialOrd + Clone> TreapNodeCont<T> {
         };
 
         if single_node.priority >= root.priority {
-            (single_node.left, single_node.right) = TreapNodeCont::Some(root).split(single_node.key.clone());
+            (single_node.left, single_node.right) =
+                TreapNodeCont::Some(root).split(single_node.key.clone());
             single_node.recompute();
             TreapNodeCont::Some(Box::new(single_node))
-        }
-        else {
+        } else {
             if single_node.key <= root.key {
                 root.left = root.left.insert(single_node);
-            }
-            else {
+            } else {
                 root.right = root.right.insert(single_node);
             }
             root.recompute();
@@ -134,15 +129,9 @@ impl<T: PartialOrd + Clone> TreapNodeCont<T> {
         };
 
         match key.partial_cmp(&root.key).unwrap() {
-            std::cmp::Ordering::Less => {
-                root.left.contains(key)
-            },
-            std::cmp::Ordering::Greater => {
-                root.right.contains(key)
-            },
-            std::cmp::Ordering::Equal => {
-                true
-            },
+            std::cmp::Ordering::Less => root.left.contains(key),
+            std::cmp::Ordering::Greater => root.right.contains(key),
+            std::cmp::Ordering::Equal => true,
         }
     }
     fn erase(self, key: &T) -> TreapNodeCont<T> {
@@ -155,17 +144,17 @@ impl<T: PartialOrd + Clone> TreapNodeCont<T> {
                 root.left = root.left.erase(key);
                 root.recompute();
                 TreapNodeCont::Some(root)
-            },
+            }
             std::cmp::Ordering::Greater => {
                 root.right = root.right.erase(key);
                 root.recompute();
                 TreapNodeCont::Some(root)
-            },
+            }
             std::cmp::Ordering::Equal => {
                 let left_subtree = mem::take(&mut root.left);
                 let right_subtree = mem::take(&mut root.right);
                 left_subtree.merge(right_subtree)
-            },
+            }
         }
     }
     fn merge(self, other: TreapNodeCont<T>) -> TreapNodeCont<T> {
@@ -176,14 +165,19 @@ impl<T: PartialOrd + Clone> TreapNodeCont<T> {
             return TreapNodeCont::Some(left_root);
         };
         if left_root.priority >= right_root.priority {
-            let (left_child, right_child) = (mem::take(&mut left_root.left), mem::take(&mut left_root.right));
+            let (left_child, right_child) = (
+                mem::take(&mut left_root.left),
+                mem::take(&mut left_root.right),
+            );
             left_root.left = left_child.merge(right_child);
             left_root.right = TreapNodeCont::Some(right_root);
             left_root.recompute();
             TreapNodeCont::Some(left_root)
-        }
-        else {
-            let (left_child, right_child) = (mem::take(&mut right_root.left), mem::take(&mut right_root.right));
+        } else {
+            let (left_child, right_child) = (
+                mem::take(&mut right_root.left),
+                mem::take(&mut right_root.right),
+            );
             right_root.right = left_child.merge(right_child);
             right_root.left = TreapNodeCont::Some(left_root);
             right_root.recompute();
@@ -241,7 +235,7 @@ mod tests {
 
         left.insert(5);
         right.insert(15);
-        
+
         let merged = left.merge(right);
 
         assert!(merged.contains(&5));
@@ -249,4 +243,3 @@ mod tests {
         assert_eq!(merged.len(), 2);
     }
 }
-

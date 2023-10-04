@@ -13,7 +13,7 @@ pub trait PrimeExt: Integer {
 
         let mut cur = Self::from_i64(2);
 
-        while cur*cur <= *self {
+        while cur * cur <= *self {
             if *self % cur == Self::ZERO {
                 return false;
             }
@@ -33,7 +33,7 @@ pub trait PrimeExt: Integer {
         let mut k = Self::from_i64(2);
         let mut n = *self;
 
-        while k*k <= *self {
+        while k * k <= *self {
             while n % k == Self::ZERO {
                 result.push(k);
                 n = n / k;
