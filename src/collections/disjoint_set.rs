@@ -17,6 +17,14 @@ impl DisjointSet {
         }
         x
     }
+    pub fn find_ref(&self, x: usize) -> usize {
+        if self.data[x] == x {
+            x
+        }
+        else {
+            self.find_ref(self.data[x])
+        }
+    }
     pub fn join(&mut self, mut x: usize, mut y: usize) -> bool {
         x = self.find(x);
         y = self.find(y);
