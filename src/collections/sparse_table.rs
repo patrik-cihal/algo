@@ -33,31 +33,49 @@ impl<T: Clone, F: Fn(T, T) -> T> SparseTable<T, F> {
             std::ops::Bound::Excluded(e) => *e-1,
             std::ops::Bound::Unbounded => self.data.len()-1,
         };
-        if l==r {
-            return self.data[l][0].clone();
+        if r-l <= 1 {
+            return (self.f)(self.data[l][0].clone(), self.data[r][0].clone());
         }
 
         let dist = r-l;
 
         let i = dist.ilog2() as usize;
 
-        (self.f)(self.data[l][i].clone(), self.data[r-(1<<i)][i].clone())
+        (self.f)(self.data[l][i].clone(), self.data[r-(1<<i)+1][i].clone())
     }
 }
 
 
 #[cfg(test)]
 mod tests {
+
+    use crate::misc::random::{self};
+
     use super::SparseTable;
 
     #[test]
     fn query() {
-        let sparse_table = SparseTable::new_from_iter(vec![0, 2, 3, 5], |a, b| a.min(b));
+        let sparse_table = SparseTable::new_from_iter(vec![0, 2, 1, 5], |a, b| a.min(b));
 
         assert!(sparse_table.query(0..=3) == 0);
         assert!(sparse_table.query(..) == 0);
         assert!(sparse_table.query(3..) == 5);
-        assert!(sparse_table.query(2..) == 3);
+        assert!(sparse_table.query(2..) == 1);
         assert!(sparse_table.query(1..=1) == 2);
+        assert!(sparse_table.query(1..3) == 1);
     }
+    #[test]
+    fn query_brute()  {
+        let mut rand = random::XorShift::new(0);
+        let arr = (0..100).map(|_| rand.next()%10).collect::<Vec<_>>();
+        let st = SparseTable::new_from_iter(arr.clone(), |a, b| a.min(b));
+
+        for i in 0..100 {
+            for j in i+1..100 {
+                let mn = arr[i..=j].iter().min().unwrap();
+                assert_eq!(*mn, st.query(i..=j));
+            }
+        }
+    }
+
 }
