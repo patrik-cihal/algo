@@ -1,6 +1,6 @@
 use std::mem;
 
-use super::super::misc::random::rand_u64;
+use super::super::random::rand_u64;
 
 pub enum TreapNodeCont<T: PartialOrd> {
     Some(Box<TreapNode<T>>),

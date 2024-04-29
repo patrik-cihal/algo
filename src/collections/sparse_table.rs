@@ -49,7 +49,7 @@ impl<T: Clone, F: Fn(T, T) -> T> SparseTable<T, F> {
 #[cfg(test)]
 mod tests {
 
-    use crate::misc::random::{self};
+    use crate::random::{self};
 
     use super::SparseTable;
 

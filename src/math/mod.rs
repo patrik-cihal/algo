@@ -6,6 +6,7 @@ pub use integer::Integer;
 pub mod modular;
 
 pub mod fractions;
+pub mod minim_maxim;
 
 pub fn gcd<T: Integer>(mut a: T, mut b: T) -> T {
     if a > b {
