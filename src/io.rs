@@ -1,51 +1,95 @@
-use std::io::{stdin, BufRead, StdinLock};
+use std::io::{self, stdin, BufRead, BufWriter, StdinLock, Stdout, StdoutLock, Write};
 
+pub static mut WRITER: Option<BufWriter<Stdout>> = None;
+pub static mut READER: Option<StdinLock> = None;
+
+pub fn writer<'a>() -> &'a mut BufWriter<Stdout> {
+    unsafe {WRITER.get_or_insert_with(|| std::io::BufWriter::new(std::io::stdout()))}
+}
+
+pub fn reader<'a>() -> &'a mut StdinLock<'static> {
+    unsafe {READER.get_or_insert_with(|| stdin().lock())}
+}
 
 #[macro_export]
-macro_rules! println_iter {
-    ($iter:expr) => {
-        for val in $iter {
-            print!("{} ", val);
-        }
-        println!();
+macro_rules! outln {
+    // Match arguments similar to `println!`
+    () => (outln!(""));
+    ($fmt:expr) => ({
+        writeln!(writer(), $fmt).unwrap();
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        writeln!(writer(), $fmt, $($arg)*).unwrap();
+    });
+}
+
+#[macro_export]
+macro_rules! out {
+    () => (out!(""));
+    ($fmt:expr) => ({
+        write!(writer(), $fmt).unwrap();
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        write!(writer(), $fmt, $($arg)*).unwrap();
+    });
+}
+
+#[macro_export]
+macro_rules! read {
+    () => {
+        reader().read_line(&mut String::new()).unwrap();
     };
+    [$t : ty] => {{
+        let line = {
+            let mut buf = String::new();
+            reader().read_line(&mut buf).unwrap();
+            buf
+        };
+
+        line.split_whitespace().map(|x| x.parse::<$t>().unwrap()).collect::<Vec<_>>()
+    }};
+
+    ($($t:ty),+) => {{
+        let line = {
+            let mut buf = String::new();
+            reader().read_line(&mut buf).unwrap();
+            buf
+        };
+
+        let mut iter = line.split_whitespace();
+        (
+            $(
+                iter.next().expect("Expected more input").parse::<$t>()
+                    .expect(&format!("Failed to parse input as {}", stringify!($t)))
+            ),+
+        )
+    }};
 }
 
-pub struct Input {
-    stdin: StdinLock<'static>
-}
 
-impl Input {
-    pub fn new() -> Self {
-        Self {
-            stdin: stdin().lock()
+#[cfg(test)]
+mod tests {
+    use super::{writer, reader};
+    use std::io::{Write, BufRead};
+    #[test]
+    pub fn writing() {
+        outln!("Hello {}", "patrik");
+        writer().flush().unwrap();
+    }
+    #[test]
+    pub fn read_write() {
+        out!("Your name please: ");
+        writer().flush().unwrap();
+    }
+    #[test]
+    pub fn reading_tuples() {
+        let n = read!(usize);
+        let v = read![usize];
+
+        for val in v {
+            out!("{val} ");
         }
-    }
-    pub fn line_str(&mut self) -> Vec<String> {
-        let mut buf = String::new();
-        self.stdin.read_line(&mut buf).unwrap();
-        buf.split_whitespace().map(|x| x.to_string()).collect()
-    }
-    pub fn line(&mut self) -> Vec<usize> {
-        self.line_str().into_iter().map(|x| x.parse::<usize>().unwrap()).collect()
-    }
-    pub fn line1(&mut self) -> usize {
-        self.line()[0]
-    }
-    pub fn line2(&mut self) -> (usize, usize) {
-        let ln = self.line();
-        (ln[0], ln[1])
-    }
-    pub fn line3(&mut self) -> (usize, usize, usize) {
-        let ln = self.line();
-        (ln[0], ln[1], ln[2])
-    }
-    pub fn line4(&mut self) -> (usize, usize, usize, usize) {
-        let ln = self.line();
-        (ln[0], ln[1], ln[2], ln[3])
-    }
-    pub fn line5(&mut self) -> (usize, usize, usize, usize, usize) {
-        let ln = self.line();
-        (ln[0], ln[1], ln[2], ln[3], ln[4])
+        outln!();
+        writer().flush().unwrap();
     }
 }
