@@ -192,7 +192,7 @@ impl<D: Clone, L: Clone, M: Fn(D, D) -> D, ML: Fn(L, L) -> L, U: Fn(D, L) -> D> 
     fn push(&mut self, ti: usize) {
         let lazy = self.lazy[ti].take();
         self.data[ti] = self.unite(self.data[ti].clone(), lazy.clone());
-        if ti * 2 + 1 >= self.data.len() {
+        if ti * 2 >= self.data.len() {
             return;
         }
         self.lazy[ti*2] = self.merge_lazy(self.lazy[ti*2].clone(), lazy.clone());
@@ -200,11 +200,11 @@ impl<D: Clone, L: Clone, M: Fn(D, D) -> D, ML: Fn(L, L) -> L, U: Fn(D, L) -> D> 
     }
 
     fn query_inner(&mut self, l: usize, r: usize, ti: usize, tl: usize, tr: usize) -> Option<D> {
+        self.push(ti);
+
         if l >= r {
             return None;
         }
-
-        self.push(ti);
 
         if tl == l && tr == r {
             return self.data[ti].clone();
@@ -225,10 +225,10 @@ impl<D: Clone, L: Clone, M: Fn(D, D) -> D, ML: Fn(L, L) -> L, U: Fn(D, L) -> D> 
     }
 
     fn update_inner(&mut self, l: usize, r: usize, val: L, ti: usize, tl: usize, tr: usize) {
+        self.push(ti);
         if l >= r {
             return;
         }
-        self.push(ti);
         if tl == l && tr == r {
             self.lazy[ti] = Some(val);
             self.push(ti);
@@ -280,6 +280,8 @@ mod seg_tree_tests {
 }
 
 mod lazy_seg_tree_tests {
+    use crate::random::rand_u64;
+
     use super::LazySegTree;
 
     #[test]
@@ -295,23 +297,70 @@ mod lazy_seg_tree_tests {
     }
     #[test]
     fn upd_test_simple() {
-        let mx = 10;
-        let mut st = LazySegTree::from_iter((0..mx).map(|i| (i as i64, 1)), |d1, d2| (d1.0+d2.0, d1.1+d2.1), |l1, l2| l2, |d, l| (l*d.1 as i64, d.1));
-        st.update(0..mx, -1);
+        let n = 10;
+        let mut st = LazySegTree::from_iter((0..n).map(|i| (i as i64, 1)), |d1, d2| (d1.0+d2.0, d1.1+d2.1), |l1, l2| l2, |d, l| (l*d.1 as i64, d.1));
+        st.update(0..n, -1);
         assert_eq!(st.query(0..=0).0, -1);
     }
 
     #[test]
     fn upd_test() {
-        let mx = 1000;
-        let mut st = LazySegTree::from_iter((0..mx).map(|i| (i as i64, 1)), |d1, d2| (d1.0+d2.0, d1.1+d2.1), |l1, l2| l2, |d, l| (l*d.1 as i64, d.1));
-        for i in 0..mx {
-            st.update(i..(i*2+1).min(mx), -(i as i64));
+        let n = 1000;
+        let mut st = LazySegTree::from_iter((0..n).map(|i| (i as i64, 1)), |d1, d2| (d1.0+d2.0, d1.1+d2.1), |l1, l2| l2, |d, l| (l*d.1 as i64, d.1));
+        for i in 0..n {
+            st.update(i..(i*2+1).min(n), -(i as i64));
         }
-        for l in 0..mx {
-            for r in l+1..=mx {
+        for l in 0..n {
+            for r in l+1..=n {
                 let tar_sum = ((r-1)*r)/2 - (l.max(1)-1)*l/2;
                 assert_eq!(st.query(l..r).0, -(tar_sum as i64));
+            }
+        }
+    }
+
+    #[test]
+    fn upd_test_max() {
+        let n = 1000;
+        let mut st = LazySegTree::from_iter(0..n as u64, |d1, d2| d1.max(d2), |l1: u64, l2| l2+l1, |d, l| d+l);
+
+        for i in 0..n {
+            for j in i+1..=n {
+                assert_eq!(st.query(i..j), j as u64-1);
+            }
+        }
+    }
+
+    #[test]
+    fn upd_test_max_randomized() {
+        let n = 1000;
+        let mut data = (0..n as u64).collect::<Vec<_>>();
+        let mut st = LazySegTree::from_iter(data.clone(), |d1, d2| d1.max(d2), |l1: u64, l2| l1+l2, |d, l| l+d);
+
+
+        let samples_cnt = 1000;
+        for _ in 0..samples_cnt {
+            let mut l = (rand_u64() as usize)%n;
+            let mut r = (rand_u64() as usize)%n;
+            if l > r {
+                std::mem::swap(&mut l, &mut r);
+            }
+            r += 1;
+
+            if rand_u64()%2 == 0 {
+                let val = rand_u64()%(u32::MAX as u64);
+
+                st.update(l..r, val);
+                for i in l..r {
+                    data[i] += val;
+                }
+            }
+            else {
+                let res = st.query(l..r);
+                let mut tar_res = 0;
+                for i in l..r {
+                    tar_res = tar_res.max(data[i]);
+                }
+                assert_eq!(tar_res, res);
             }
         }
     }
