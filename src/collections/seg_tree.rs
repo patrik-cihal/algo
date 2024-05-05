@@ -81,7 +81,7 @@ impl<D: Clone, M: Fn(D, D) -> D> SegTree<D, M> {
         self.query_inner(range.start, range.end, 1, 0, self.n).unwrap()
     }
 
-    fn update_inner(&mut self, i: usize, val: D, ti: usize, tl: usize, tr: usize) {
+    fn set_inner(&mut self, i: usize, val: D, ti: usize, tl: usize, tr: usize) {
         if tl+1 == tr {
             assert!(i == tl);
             self.data[ti] = Some(val);
@@ -89,16 +89,16 @@ impl<D: Clone, M: Fn(D, D) -> D> SegTree<D, M> {
         }
         let tm = (tl+tr)/2;
         if i < tm {
-            self.update_inner(i, val, ti*2, tl, tm);
+            self.set_inner(i, val, ti*2, tl, tm);
         }
         else {
-            self.update_inner(i, val, ti*2+1, tm, tr);
+            self.set_inner(i, val, ti*2+1, tm, tr);
         };
         self.data[ti] = self.merge(self.data[ti*2].clone(), self.data[ti*2+1].clone());
     }
 
-    pub fn update(&mut self, i: usize, val: D) {
-        self.update_inner(i, val, 1, 0, self.n);
+    pub fn set(&mut self, i: usize, val: D) {
+        self.set_inner(i, val, 1, 0, self.n);
     }
 }
 
@@ -224,6 +224,29 @@ impl<D: Clone, L: Clone, M: Fn(D, D) -> D, ML: Fn(L, L) -> L, U: Fn(D, L) -> D> 
         self.query_inner(range.start, range.end, 1, 0, self.n).unwrap()
     }
 
+    fn set_inner(&mut self, i: usize, val: D, ti: usize, tl: usize, tr: usize) {
+        self.push(ti);
+        if tl+1 == tr {
+            assert!(i == tl);
+            self.data[ti] = Some(val);
+            return;
+        }
+        let tm = (tl+tr)/2;
+        if i < tm {
+            self.set_inner(i, val, ti*2, tl, tm);
+            self.push(ti*2+1);
+        }
+        else {
+            self.push(ti*2);
+            self.set_inner(i, val, ti*2+1, tm, tr);
+        };
+        self.data[ti] = self.merge(self.data[ti*2].clone(), self.data[ti*2+1].clone());
+    }
+
+    pub fn set(&mut self, i: usize, val: D) {
+        self.set_inner(i, val, 1, 0, self.n);
+    }
+
     fn update_inner(&mut self, l: usize, r: usize, val: L, ti: usize, tl: usize, tr: usize) {
         self.push(ti);
         if l >= r {
@@ -268,7 +291,7 @@ mod seg_tree_tests {
         let mx = 1000;
         let mut st = SegTree::from_iter(0..mx as i64, |a, b| a+b);
         for i in 0..mx {
-            st.update(i, -(i as i64));
+            st.set(i, -(i as i64));
         }
         for l in 0..mx {
             for r in l+1..=mx {
@@ -332,12 +355,12 @@ mod lazy_seg_tree_tests {
 
     #[test]
     fn upd_test_max_randomized() {
-        let n = 1000;
+        let n = 100_000;
         let mut data = (0..n as u64).collect::<Vec<_>>();
         let mut st = LazySegTree::from_iter(data.clone(), |d1, d2| d1.max(d2), |l1: u64, l2| l1+l2, |d, l| l+d);
 
 
-        let samples_cnt = 1000;
+        let samples_cnt = 10_000;
         for _ in 0..samples_cnt {
             let mut l = (rand_u64() as usize)%n;
             let mut r = (rand_u64() as usize)%n;
@@ -349,12 +372,20 @@ mod lazy_seg_tree_tests {
             if rand_u64()%2 == 0 {
                 let val = rand_u64()%(u32::MAX as u64);
 
-                st.update(l..r, val);
-                for i in l..r {
-                    data[i] += val;
+                if rand_u64() % 2 == 0 {
+                    st.update(l..r, val);
+                    for i in l..r {
+                        data[i] += val;
+                    }
                 }
+                else {
+                    st.set(l, val);
+                    data[l] = val;
+                }
+
             }
             else {
+
                 let res = st.query(l..r);
                 let mut tar_res = 0;
                 for i in l..r {
