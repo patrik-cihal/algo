@@ -49,11 +49,35 @@ pub trait PrimeExt: Integer {
     }
 }
 
+pub fn find_primes(n: usize) -> Vec<u64> {
+    let mut is_prime = vec![true; n+1];
+    let mut primes = vec![];
+
+    for i in 2..=n {
+        if !is_prime[i] {
+            continue;
+        }
+
+        primes.push(i as u64);
+
+        for j in (i*i..=n).step_by(i) {
+            is_prime[j] = false;
+        }
+    }
+
+    primes
+}
+
 impl<T: Integer> PrimeExt for T {}
 
 #[cfg(test)]
 mod tests {
-    use super::PrimeExt;
+    use super::*;
+
+    #[test]
+    fn test_factorize_all() {
+        assert_eq!(find_primes(10), vec![2, 3, 5, 7])
+    }
 
     #[test]
     fn test_is_prime_small_numbers() {
