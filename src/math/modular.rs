@@ -253,7 +253,7 @@ impl<const MODULUS: u128> MInt128<MODULUS> {
         }
         result
     }
-    fn extended_gcd(a: i64, b: i64) -> (i64, i64, i64) {
+    fn extended_gcd(a: i128, b: i128) -> (i128, i128, i128) {
         if a == 0 {
             (b, 0, 1)
         } else {
@@ -262,8 +262,8 @@ impl<const MODULUS: u128> MInt128<MODULUS> {
         }
     }
     pub fn inv(self) -> Self {
-        let (_, x, _) = Self::extended_gcd(self.value as i64, MODULUS as i64);
-        Self::new((x + MODULUS as i64) as u128)
+        let (_, x, _) = Self::extended_gcd(self.value as i128, MODULUS as i128);
+        Self::new((x + MODULUS as i128) as u128)
     }
 }
 
