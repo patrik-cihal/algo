@@ -121,6 +121,7 @@ impl<const T: u64> Into<MInt<T>> for u64 {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -212,5 +213,124 @@ mod tests {
         let inverse = a.inv();
 
         assert_eq!(inverse.value, 2);
+    }
+}
+
+
+#[derive(Copy, Clone, Default, Debug, PartialEq, PartialOrd, Eq, Ord)]
+pub struct MInt128<const MODULUS: u128> {
+    pub value: u128,
+}
+
+impl<const M: u128> Display for MInt128<M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
+impl<const MODULUS: u128> MInt128<MODULUS> {
+    pub fn one() -> Self {
+        Self { value: 1 }
+    }
+    pub fn zero() -> Self {
+        Self { value: 0 }
+    }
+    pub fn new(value: u128) -> Self {
+        Self {
+            value: value % MODULUS,
+        }
+    }
+    pub fn pow(self, n: u128) -> MInt128<MODULUS> {
+        let mut result = Self::one();
+        let mut base = self;
+        let mut exponent = n;
+        while exponent > 0 {
+            if exponent % 2 == 1 {
+                result = result * base;
+            }
+            base = base * base;
+            exponent /= 2;
+        }
+        result
+    }
+    fn extended_gcd(a: i64, b: i64) -> (i64, i64, i64) {
+        if a == 0 {
+            (b, 0, 1)
+        } else {
+            let (g, x, y) = Self::extended_gcd(b % a, a);
+            (g, y - (b / a) * x, x)
+        }
+    }
+    pub fn inv(self) -> Self {
+        let (_, x, _) = Self::extended_gcd(self.value as i64, MODULUS as i64);
+        Self::new((x + MODULUS as i64) as u128)
+    }
+}
+
+impl<const T: u128> Add<MInt128<T>> for MInt128<T> {
+    type Output = MInt128<T>;
+    fn add(self, rhs: MInt128<T>) -> Self::Output {
+        let mut value = self.value + rhs.value;
+        if value >= T {
+            value -= T;
+        }
+        Self { value }
+    }
+}
+
+impl<const T: u128> AddAssign<MInt128<T>> for MInt128<T> {
+    fn add_assign(&mut self, rhs: MInt128<T>) {
+        *self = *self + rhs;
+    }
+}
+
+impl<const T: u128> Mul<MInt128<T>> for MInt128<T> {
+    type Output = MInt128<T>;
+    fn mul(self, rhs: MInt128<T>) -> Self::Output {
+        Self {
+            value: (self.value * rhs.value) % T,
+        }
+    }
+}
+
+impl<const T: u128> MulAssign<MInt128<T>> for MInt128<T> {
+    fn mul_assign(&mut self, rhs: MInt128<T>) {
+        self.value = (self.value * rhs.value) % T;
+    }
+}
+
+impl<const T: u128> Sub<MInt128<T>> for MInt128<T> {
+    type Output = MInt128<T>;
+    fn sub(self, rhs: MInt128<T>) -> Self::Output {
+        let mut value = self.value + T - rhs.value;
+        if value >= T {
+            value -= T;
+        }
+        Self { value }
+    }
+}
+
+impl<const T: u128> SubAssign<MInt128<T>> for MInt128<T> {
+    fn sub_assign(&mut self, rhs: MInt128<T>) {
+        *self = *self - rhs;
+    }
+}
+
+impl<const T: u128> Div<MInt128<T>> for MInt128<T> {
+    type Output = MInt128<T>;
+    fn div(self, rhs: MInt128<T>) -> Self::Output {
+        self * rhs.inv()
+    }
+}
+
+impl<const T: u128> DivAssign<MInt128<T>> for MInt128<T> {
+    fn div_assign(&mut self, rhs: MInt128<T>) {
+        *self = *self / rhs;
+    }
+}
+
+impl<const T: u128> Into<MInt128<T>> for u128 {
+    fn into(self) -> MInt128<T> {
+        MInt128::new(self)
     }
 }
